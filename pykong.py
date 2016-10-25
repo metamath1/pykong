@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+# -----------------------------------------------------------------------------
+# Copyright 
+# Contributors: Jo,JoonWoo (metamath@gmail.com)
+#
+# PyKong is a simple KBS Classic FM streaming player using an external media player.
+#
+# This software is governed by the MIT license
+
 import urllib2, json, getopt, sys
 import subprocess as sp
 
@@ -18,7 +26,6 @@ def main():
         config_json = config_file.read()
     
     config = json.loads(config_json)
-    
     
     #default is kbs classic fm
     ch = 1
