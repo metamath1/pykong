@@ -1,4 +1,4 @@
 {
-    "player":"C:/PROGRA~2/Daum/PotPlayer/PotPlayerMini",
+    "player":"C:/PROGRA~2/VideoLAN/VLC/vlc -vvv",
     "stream_url":"http://kong.kbs.co.kr/live_player/channelMini.php?id=kbs&channel=%s"
 }

@@ -35,6 +35,8 @@ def main():
             ch = arg
             
     mms = getadd(config['stream_url'], ch)
+    print(mms)
+    
     command = config['player'] + ' ' + mms
     p = sp.Popen(command, stdout=sp.PIPE)
 
