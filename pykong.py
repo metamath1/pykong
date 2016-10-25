@@ -30,13 +30,15 @@ def main():
         help()
         sys.exit(1)
     
-    for opt, arg in opts :
-        if opt == '-c' or opt == '--channel':
-            ch = arg
+    if( opts == [] ) :
+        print('Stream from default channel, KBS 1FM')
+    else :
+        for opt, arg in opts :
+            if opt == '-c' or opt == '--channel':
+                ch = arg
             
     mms = getadd(config['stream_url'], ch)
-    print(mms)
-    
+     
     command = config['player'] + ' ' + mms
     p = sp.Popen(command, stdout=sp.PIPE)
 
