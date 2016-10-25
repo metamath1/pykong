@@ -6,8 +6,8 @@ import subprocess as sp
 def help():
     print('USAGE: pykong -c [1|2] 1:KBS 1FM, 2:KBS 2FM')
     
-def getadd(ch):
-    response = urllib2.urlopen("http://kong.kbs.co.kr/live_player/channelMini.php?id=kbs&channel=%s" % ch)
+def getadd(url, ch):
+    response = urllib2.urlopen(url % ch)
     st = response.read()
     index1 = st.find("mms:")
     address = st[index1:]
@@ -18,6 +18,7 @@ def main():
         config_json = config_file.read()
     
     config = json.loads(config_json)
+    
     
     #default is kbs classic fm
     ch = 1
@@ -33,7 +34,7 @@ def main():
         if opt == '-c' or opt == '--channel':
             ch = arg
             
-    mms = getadd(ch)
+    mms = getadd(config['stream_url'], ch)
     command = config['player'] + ' ' + mms
     p = sp.Popen(command, stdout=sp.PIPE)
 
