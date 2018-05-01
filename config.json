@@ -1,4 +1,5 @@
 {
-    "player":"C:/PROGRA~2/VideoLAN/VLC/vlc -vvv",
-    "stream_url":"http://kong.kbs.co.kr/live_player/channelMini.php?id=kbs&channel=%s"
+    "player":"C:/PROGRA~1/DAUM/PotPlayer/PotPlayerMini64.exe",
+    "stream_url":"http://kong.kbs.co.kr/live_player/channelMini.php?id=kbs&channel=%s",
+    "3" : "http://aac.cbs.co.kr/cbs939/_definst_/cbs939.stream/playlist.m3u8"
 }

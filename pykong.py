@@ -12,7 +12,7 @@ import urllib2, json, getopt, sys
 import subprocess as sp
 
 def help():
-    print('USAGE: pykong -c [1|2] 1:KBS 1FM, 2:KBS 2FM')
+    print('USAGE: pykong -c [1|2|3] 1:KBS 1FM, 2:KBS 2FM, 3:CBS MUSIC FM')
     
 def getadd(url, ch):
     response = urllib2.urlopen(url % ch)
@@ -43,10 +43,14 @@ def main():
         for opt, arg in opts :
             if opt == '-c' or opt == '--channel':
                 ch = arg
-            
-    mms = getadd(config['stream_url'], ch)
-     
+    
+    if ch in ['1', '2'] :    
+        mms = getadd(config['stream_url'], ch)
+    else :
+        mms = config[ch]
+    
     command = config['player'] + ' ' + mms
+    
     p = sp.Popen(command, stdout=sp.PIPE)
 
 if __name__ == "__main__":
