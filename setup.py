@@ -15,3 +15,5 @@ setup(
     console = ["pykong.py"],
     data_files = Mydata_files,
 )
+
+#python setup.py py2exe
