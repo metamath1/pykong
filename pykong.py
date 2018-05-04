@@ -112,6 +112,13 @@ def draw_menu(stdscr):
 
         # Declaration of strings
         title = "Pykong"[:width-1]
+        title1 = "   ___         _                         "[:width-1]
+        title2 = "  / _ \ _   _ | | __  ___   _ __    __ _ "[:width-1]
+        title3 = " / /_)/| | | || |/ / / _ \ | '_ \  / _` |"[:width-1]
+        title4 = "/ ___/ | |_| ||   < | (_) || | | || (_| |"[:width-1]
+        title5 = "\/      \__, ||_|\_\ \___/ |_| |_| \__, |"[:width-1]
+        title6 = "        |___/                      |___/ "[:width-1]
+        
         subtitle = "Written by metamath"[:width-1]
         
         # config 파일 읽어오기..
@@ -124,10 +131,11 @@ def draw_menu(stdscr):
             keystr = "No key press detected..."[:width-1]
 
         # Centering calculations
-        start_x_title = int((width // 2) - (len(title) // 2) - len(title) % 2)
+        start_x_title = int((width // 2) - (len(title1) // 2) - len(title1) % 2)
         start_x_subtitle = int((width // 2) - (len(subtitle) // 2) - len(subtitle) % 2)
         start_x_keystr = int((width // 2) - (len(keystr) // 2) - len(keystr) % 2)
-        start_y = int((height // 2) - 2)
+        #start_y = int((height // 2) - 5)
+        start_y = 3
 
         # Rendering some text
         whstr = "Width: {}, Height: {}".format(width, height)
@@ -151,17 +159,23 @@ def draw_menu(stdscr):
         stdscr.attron(curses.A_BOLD)
 
         # Rendering title
-        stdscr.addstr(start_y, start_x_title, title)
+        #stdscr.addstr(start_y, start_x_title, title)
+        stdscr.addstr(start_y,   start_x_title, title1)
+        stdscr.addstr(start_y+1, start_x_title, title2)
+        stdscr.addstr(start_y+2, start_x_title, title3)
+        stdscr.addstr(start_y+3, start_x_title, title4)
+        stdscr.addstr(start_y+4, start_x_title, title5)
+        stdscr.addstr(start_y+5, start_x_title, title6)
 
         # Turning off attributes for title
         stdscr.attroff(curses.color_pair(2))
         stdscr.attroff(curses.A_BOLD)
 
         # Print rest of text
-        stdscr.addstr(start_y + 1, start_x_subtitle, subtitle)
-        stdscr.addstr(start_y + 3, (width // 2) - 2, '-' * 4)
+        stdscr.addstr(start_y + 6, start_x_subtitle, subtitle)
+        stdscr.addstr(start_y + 8, (width // 2) - 2, '-' * 4)
         
-        init_ch_start_y = start_y + 4
+        init_ch_start_y = start_y + 9
         ch_str_offset = 2
         for i, channel_str in enumerate(channel_strs) :
             if int(ch) == i+1 :
