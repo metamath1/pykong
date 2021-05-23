@@ -1,5 +1,7 @@
 {
     "player":"C:/PROGRA~1/VideoLAN/VLC/vlc -vvv",
-    "stream_url":"http://kong.kbs.co.kr/live_player/channelMini.php?id=kbs&channel=%s",
-    "3" : "http://aac.cbs.co.kr/cbs939/_definst_/cbs939.stream/playlist.m3u8"
+    "stations":{
+	    "1": {"name": "[1] KBS CLASSIC FM", "url": "http://serpent0.duckdns.org:8088/kbsfm.pls"},
+	    "2": {"name": "[2] CBS MUSIC FM", "url": "http://aac.cbs.co.kr/cbs939/_definst_/cbs939.stream/playlist.m3u8"}
+    }
 }

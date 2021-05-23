@@ -12,16 +12,15 @@
 import sys, os
 import curses
 import vlc
-import urllib2, json
-
+import json
 
     
-def getadd(url, ch):
-    response = urllib2.urlopen(url % ch)
-    st = response.read()
-    index1 = st.find("mms:")
-    address = st[index1:]
-    return address
+# def getadd(url, ch):
+#     response = urllib2.urlopen(url % ch)
+#     st = response.read()
+#     index1 = st.find("mms:")
+#     address = st[index1:]
+#     return address
 
     
 def draw_menu(stdscr):
@@ -29,26 +28,29 @@ def draw_menu(stdscr):
     cursor_x = 0
     cursor_y = 0
     
-    # ##################################################################
+    ##################################################################
     # READ CONFIG FILE
     with open ("config.json", "r") as config_file:
         config_json = config_file.read()
     
     config = json.loads(config_json)
-    # ##################################################################
+    ##################################################################
     
-    # ##################################################################
-    # Create vlc player
-    instance = vlc.Instance() #define VLC instance
-    player   = instance.media_player_new() #Define VLC player
-    
-    # ##################################################################
+    ###################################################################
     # Init. state variable
-    media = None
-    select_ch = 0
-    current_volume = -1
+    select_ch = '1'
+    current_ch = '0'
+    current_volume = 50
     mute = False
-    
+
+    # ##################################################################
+    # Create vlc player https://github.com/oaubert/python-vlc/issues/61
+    # http://olivieraubert.net/vlc/python-ctypes/doc/index.html
+    # https://stackoverflow.com/questions/46346859/python-vlc-script-error-attributeerror-nonetype-object-has-no-attribute-med
+    instance = vlc.Instance(["--prefetch-buffer-size=2000 --prefetch-read-size=5000 --network-caching=1000"]) #define VLC instance
+    player = None
+    media = None
+
     # Clear and refresh the screen for a blank canvas
     stdscr.clear()
     stdscr.refresh()
@@ -60,6 +62,9 @@ def draw_menu(stdscr):
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
     curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_RED)
     
+    ###############################################################################
+    # Start Main Loop
+    ###############################################################################
     # Loop where k is the last character pressed
     while (k != ord('q')):
 
@@ -67,48 +72,71 @@ def draw_menu(stdscr):
         stdscr.clear()
         height, width = stdscr.getmaxyx()
         
-        # channel and volume key 
-        if k == 49 :
-            select_ch = 1
-        elif k == 50 :
-            select_ch = 2
-        elif k == 51 :
-            select_ch = 3
-        elif k == curses.KEY_UP :
+        
+        ###############################################################################
+        # Process for keys and player
+        ###############################################################################
+
+        # channel, volume key, and mute key
+        if k == ord('1'):
+            select_ch = '1'
+        elif k == ord('2'):
+            select_ch = '2'
+        elif k == curses.KEY_UP:
             current_volume += 5
-            player.audio_set_volume(current_volume)
-        elif k == curses.KEY_DOWN :
+        elif k == curses.KEY_DOWN:
             current_volume -= 5
-            player.audio_set_volume(current_volume)
-        elif k == ord('m') :
+        elif k == ord('m'):
             mute = not mute
-            player.audio_set_mute(mute)
             
-        # play selected station
-        if select_ch == 0 or (select_ch != 0 and ch != select_ch) :
-            if select_ch != 0 :
-                ch = str(select_ch)
-            else :
-                ch = '1' #default
-                
-            #change ch to str
-            if ch in ['1', '2'] :    
-                url = getadd(config['stream_url'], ch)
-            else :
-                url = config[ch]
+        # get url from config.json
+        url = config["stations"][select_ch]["url"]
+        
+        # change current ch.
+        if current_ch != select_ch:
+            if player != None:
+                player.stop()
+                player.release()
             
-            if media != None :
-                media.release()
+            #if media != None :
+            #    media.release()
+
+            if url[-3:] == "pls":
+                player = instance.media_list_player_new()
+                media_list = instance.media_list_new([url])
+                player.set_media_list(media_list)
+            else:
+                player = instance.media_player_new() #Define VLC player
+                # https://stackoverflow.com/questions/28440708/python-vlc-binding-playing-a-playlist    
+                media = instance.media_new(url) #Define VLC media
+                player.set_media(media)  #Set player media
                 
-            media=instance.media_new(url) #Define VLC media
-            player.set_media(media)  #Set player media
+            #if url[-3:] == "pls":
+            #    media_list = instance.media_list_new([url])
+            #    player.set_media_list(media_list)
+            #else:
+            #    # https://stackoverflow.com/questions/28440708/python-vlc-binding-playing-a-playlist    
+            #    media = instance.media_new(url) #Define VLC media
+            #    player.set_media(media)  #Set player media
+
             player.play() #Play the media
-            
-            # set play channel to select channel
-            select_ch = ch
-            
-            #get current
-            current_volume = player.audio_get_volume()
+
+            current_ch = select_ch
+        
+        # vol and mute
+        # https://stackoverflow.com/questions/45150694/how-to-change-the-volume-of-playback-in-medialistplayer-with-libvlc
+        if url[-3:] == "pls":
+            player.get_media_player().audio_set_volume(current_volume)
+            player.get_media_player().audio_set_mute(mute)
+        else:
+            player.audio_set_volume(current_volume)
+            player.audio_set_mute(mute)
+
+        
+
+        ###############################################################################
+        # Draw Screen
+        ###############################################################################
 
         # Declaration of strings
         title = "Pykong"[:width-1]
@@ -120,12 +148,9 @@ def draw_menu(stdscr):
         title6 = "        |___/                      |___/ "[:width-1]
         
         subtitle = "Written by metamath"[:width-1]
-        
-        # config 파일 읽어오기..
-        channel_strs = [ "[1] KBS 1 FM", "[2] KBS 2 FM", "[3] CBS MUSIC FM" ]
-        
-        #statusbarstr = "Press 'q' to exit | STATUS BAR | Pos: {}, {}".format(cursor_x, cursor_y)
-        statusbarstr = "Press 'q' to exit | Current Station : {} | Vol. : {} | Mute : {}".format(channel_strs[int(ch)-1], current_volume, mute)
+        channel_strs = [ station[1]["name"] for station in config["stations"].items()  ]
+        statusbar_str = "Press 'q' to exit | Current Station : {} | Vol. : {} | Mute : {}"\
+                .format(channel_strs[int(select_ch)-1], current_volume, mute)
         
         if k == 0:
             keystr = "No key press detected..."[:width-1]
@@ -134,7 +159,6 @@ def draw_menu(stdscr):
         start_x_title = int((width // 2) - (len(title1) // 2) - len(title1) % 2)
         start_x_subtitle = int((width // 2) - (len(subtitle) // 2) - len(subtitle) % 2)
         start_x_keystr = int((width // 2) - (len(keystr) // 2) - len(keystr) % 2)
-        #start_y = int((height // 2) - 5)
         start_y = 3
 
         # Rendering some text
@@ -142,15 +166,15 @@ def draw_menu(stdscr):
         stdscr.addstr(0, 0, whstr, curses.color_pair(1))
 
         # Render status bar
-        if mute :
+        if mute:
             stdscr.attron(curses.color_pair(4))
-            stdscr.addstr(height-1, 0, statusbarstr)
-            stdscr.addstr(height-1, len(statusbarstr), " " * (width - len(statusbarstr) - 1))
+            stdscr.addstr(height-1, 0, statusbar_str)
+            stdscr.addstr(height-1, len(statusbar_str), " " * (width - len(statusbar_str) - 1))
             stdscr.attroff(curses.color_pair(4))
-        else :
+        else:
             stdscr.attron(curses.color_pair(3))
-            stdscr.addstr(height-1, 0, statusbarstr)
-            stdscr.addstr(height-1, len(statusbarstr), " " * (width - len(statusbarstr) - 1))
+            stdscr.addstr(height-1, 0, statusbar_str)
+            stdscr.addstr(height-1, len(statusbar_str), " " * (width - len(statusbar_str) - 1))
             stdscr.attroff(curses.color_pair(3))
             
             
@@ -171,20 +195,20 @@ def draw_menu(stdscr):
         stdscr.attroff(curses.color_pair(2))
         stdscr.attroff(curses.A_BOLD)
 
-        # Print rest of text
+        # Print the rest of text
         stdscr.addstr(start_y + 6, start_x_subtitle, subtitle)
         stdscr.addstr(start_y + 8, (width // 2) - 2, '-' * 4)
         
         init_ch_start_y = start_y + 9
         ch_str_offset = 2
-        for i, channel_str in enumerate(channel_strs) :
-            if int(ch) == i+1 :
+        for i, channel_str in enumerate(channel_strs):
+            if int(select_ch) == i+1 :
                 stdscr.attron(curses.color_pair(1))
                 stdscr.attron(curses.A_BOLD)
                 stdscr.addstr(init_ch_start_y + ch_str_offset*(i+1), start_x_keystr, channel_str)
                 stdscr.attroff(curses.color_pair(1))
                 stdscr.attroff(curses.A_BOLD)
-            else :
+            else:
                 stdscr.addstr(init_ch_start_y + ch_str_offset*(i+1), start_x_keystr, channel_str)
         
         # Refresh the screen
@@ -192,9 +216,13 @@ def draw_menu(stdscr):
 
         # Wait for next input
         k = stdscr.getch()
-    
+    # while (k != ord('q')):
+
+
     # free player, media
-    media.release()
+    # media.release()
+    player.stop()
+    player.release()
     instance.release()
     
 def main():
