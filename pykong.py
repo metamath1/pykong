@@ -42,6 +42,7 @@ def draw_menu(stdscr):
     current_ch = '0'
     current_volume = 50
     mute = False
+    ch_list = [ ord(station[0]) for station in config["stations"].items() ]
 
     # ##################################################################
     # Create vlc player https://github.com/oaubert/python-vlc/issues/61
@@ -72,25 +73,23 @@ def draw_menu(stdscr):
         stdscr.clear()
         height, width = stdscr.getmaxyx()
         
-        
         ###############################################################################
         # Process for keys and player
         ###############################################################################
 
         # channel, volume key, and mute key
-        if k == ord('1'):
-            select_ch = '1'
-        elif k == ord('2'):
-            select_ch = '2'
-        elif k == curses.KEY_UP:
+        #if k == ord('1'):
+        #    select_ch = '1'
+        #elif k == ord('2'):
+        #    select_ch = '2'
+        if k == curses.KEY_UP:
             current_volume += 5
         elif k == curses.KEY_DOWN:
             current_volume -= 5
         elif k == ord('m'):
             mute = not mute
-            
-        # get url from config.json
-        url = config["stations"][select_ch]["url"]
+        elif k in ch_list: 
+            select_ch = chr(k)
         
         # change current ch.
         if current_ch != select_ch:
@@ -100,6 +99,9 @@ def draw_menu(stdscr):
             
             #if media != None :
             #    media.release()
+
+            # get url from config.json
+            url = config["stations"][select_ch]["url"]
 
             if url[-3:] == "pls":
                 player = instance.media_list_player_new()
@@ -111,14 +113,6 @@ def draw_menu(stdscr):
                 media = instance.media_new(url) #Define VLC media
                 player.set_media(media)  #Set player media
                 
-            #if url[-3:] == "pls":
-            #    media_list = instance.media_list_new([url])
-            #    player.set_media_list(media_list)
-            #else:
-            #    # https://stackoverflow.com/questions/28440708/python-vlc-binding-playing-a-playlist    
-            #    media = instance.media_new(url) #Define VLC media
-            #    player.set_media(media)  #Set player media
-
             player.play() #Play the media
 
             current_ch = select_ch
@@ -132,7 +126,6 @@ def draw_menu(stdscr):
             player.audio_set_volume(current_volume)
             player.audio_set_mute(mute)
 
-        
 
         ###############################################################################
         # Draw Screen
